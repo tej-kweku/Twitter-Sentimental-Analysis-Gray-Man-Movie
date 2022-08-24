@@ -1,8 +1,6 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
 import plotly.figure_factory as ff
 import plotly.express as px
 import warnings
@@ -29,7 +27,6 @@ st.set_page_config(
     page_title="Netflix-Twitter Sentimental Analysis"
 )
 
-plt.style.use("bmh")
 
 # global variable to store OMDB movie data
 omdb_data = None
