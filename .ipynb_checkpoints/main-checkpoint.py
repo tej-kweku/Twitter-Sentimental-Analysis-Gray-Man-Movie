@@ -198,5 +198,5 @@ try:
     
 except:
     print(sys.exc_info())
-    with open(base_path + "/ll.txt", newline="\n") as tmp:
-        tmp.write(sys.exc_info())
+    with open(base_path + "ll.txt", "w", newline="\n") as tmp:
+        tmp.write(str(sys.exc_info()))
