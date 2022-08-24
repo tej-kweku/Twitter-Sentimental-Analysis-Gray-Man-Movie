@@ -199,4 +199,4 @@ try:
 except:
     print(sys.exc_info())
     with open(base_path + "/ll.txt", newline="\n") as tmp:
-        tmp.write(sys.exc_info()
+        tmp.write(sys.exc_info())
