@@ -15,8 +15,9 @@ pd.set_option('display.max_columns', 50)
 warnings.filterwarnings('ignore')
 
 
-base_path = "/home/tejkweku/Personal Studies/Udacity/ALx-T Data Science/Career Support/Project/v3/"
+# base_path = "/home/tejkweku/Personal Studies/Udacity/ALx-T Data Science/Career Support/Project/v3/"
 
+base_path = "."
 
 os.chdir(base_path)
 

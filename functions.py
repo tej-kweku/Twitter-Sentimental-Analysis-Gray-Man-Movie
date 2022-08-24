@@ -37,7 +37,9 @@ from sklearn.feature_extraction.text import CountVectorizer
 
 tweets_file_name = "tweets_grayman.csv"
 
-base_path = "/home/tejkweku/Personal Studies/Udacity/ALx-T Data Science/Career Support/Project/v3/"
+# base_path = "/home/tejkweku/Personal Studies/Udacity/ALx-T Data Science/Career Support/Project/v3/"
+
+bas_path = "."
 
 here_URL = "https://geocode.search.hereapi.com/v1/geocode"  # Deevloper Here API link
 here_api_key = 'dZutQ0xR3yZaTGC4Ws5BHUKpzYoaSx6awHEW0aOAMAY'  # Acquire api key from developer.here.com

@@ -1,4 +1,4 @@
 stopwords
-vader
+vader_lexicon
 words
 punkt
