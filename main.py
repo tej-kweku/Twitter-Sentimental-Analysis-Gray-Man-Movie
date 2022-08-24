@@ -1,12 +1,14 @@
+import time
+import os
+import sys
+import datetime
+
 import streamlit as st
 import pandas as pd
 import numpy as np
 import plotly.figure_factory as ff
 import plotly.express as px
 import warnings
-import time
-import os
-import sys
 
 from functions import *
 
@@ -38,10 +40,10 @@ twitter_data = None
 
 # fetch the movie data
 with st.spinner("Loading"):
-    omdb_data = {'Title': 'The Gray Man', 'Year': '2022', 'Rated': 'PG-13', 'Released': '22 Jul 2022', 'Runtime': '122 min', 'Genre': 'Action, Thriller', 'Director': 'Anthony Russo, Joe Russo', 'Writer': 'Joe Russo, Christopher Markus, Stephen McFeely', 'Actors': 'Ryan Gosling, Chris Evans, Ana de Armas', 'Plot': "When the CIA's most skilled operative-whose true identity is known to none-accidentally uncovers dark agency secrets, a psychopathic former colleague puts a bounty on his head, setting off a global manhunt by international assassins.", 'Language': 'English', 'Country': 'United States, Czech Republic', 'Awards': 'N/A', 'Poster': 'https://m.media-amazon.com/images/M/MV5BOWY4MmFiY2QtMzE1YS00NTg1LWIwOTQtYTI4ZGUzNWIxNTVmXkEyXkFqcGdeQXVyODk4OTc3MTY@._V1_SX300.jpg', 'Ratings': [{'Source': 'Internet Movie Database', 'Value': '6.5/10'}, {'Source': 'Rotten Tomatoes', 'Value': '46%'}, {'Source': 'Metacritic', 'Value': '49/100'}], 'Metascore': '49', 'imdbRating': '6.5', 'imdbVotes': '134,431', 'imdbID': 'tt1649418', 'Type': 'movie', 'DVD': '22 Jul 2022', 'BoxOffice': 'N/A', 'Production': 'N/A', 'Website': 'N/A', 'Response': 'True'}
+    # omdb_data = {'Title': 'The Gray Man', 'Year': '2022', 'Rated': 'PG-13', 'Released': '22 Jul 2022', 'Runtime': '122 min', 'Genre': 'Action, Thriller', 'Director': 'Anthony Russo, Joe Russo', 'Writer': 'Joe Russo, Christopher Markus, Stephen McFeely', 'Actors': 'Ryan Gosling, Chris Evans, Ana de Armas', 'Plot': "When the CIA's most skilled operative-whose true identity is known to none-accidentally uncovers dark agency secrets, a psychopathic former colleague puts a bounty on his head, setting off a global manhunt by international assassins.", 'Language': 'English', 'Country': 'United States, Czech Republic', 'Awards': 'N/A', 'Poster': 'https://m.media-amazon.com/images/M/MV5BOWY4MmFiY2QtMzE1YS00NTg1LWIwOTQtYTI4ZGUzNWIxNTVmXkEyXkFqcGdeQXVyODk4OTc3MTY@._V1_SX300.jpg', 'Ratings': [{'Source': 'Internet Movie Database', 'Value': '6.5/10'}, {'Source': 'Rotten Tomatoes', 'Value': '46%'}, {'Source': 'Metacritic', 'Value': '49/100'}], 'Metascore': '49', 'imdbRating': '6.5', 'imdbVotes': '134,431', 'imdbID': 'tt1649418', 'Type': 'movie', 'DVD': '22 Jul 2022', 'BoxOffice': 'N/A', 'Production': 'N/A', 'Website': 'N/A', 'Response': 'True'}
 
-    # raw_data = fetch_movie_data_from_internet()
-    # omdb_data = json.loads(raw_data)
+    raw_data = fetch_movie_data_from_internet()
+    omdb_data = json.loads(raw_data)
     
     # # print(json.loads(raw_data).keys()
     # print(json.loads(raw_data))
@@ -49,19 +51,16 @@ with st.spinner("Loading"):
 
     twitter_data = preprocess_tweets()
     # st.dataframe(twitter_data)
-    # print(twitter_data.info())
 
     twitter_meta_data = dict()    
-    twitter_meta_data["hashtags"] = get_hashtags(twitter_data)
-    twitter_meta_data["movie_characters"] = get_movie_characters(twitter_data)
-    
     
     with st.sidebar:
         st.subheader("Filters")
-        # sel_tweet_type = st.multiselect(
-        #     "Tweet Type",
-        #     ("Tweet", "Retweet", "Like")
-        # )
+        
+        today = datetime.date.today()
+        yesterday = today + datetime.timedelta(days=-1)
+        start_date = st.date_input('Start date', yesterday)
+        end_date = st.date_input('End date', today)
         
         sel_hashtags = [ x[1:] for x in get_hashtags(twitter_data)["hashtags"].values ]
         selected_hashtags = st.multiselect(
@@ -80,6 +79,14 @@ with st.spinner("Loading"):
             sel_movie_characters
         )
         
+        if start_date:
+            twitter_data = twitter_data.loc[
+                (twitter_data["time_created"].dt.date >= start_date)
+            ]
+        if end_date:
+            twitter_data = twitter_data.loc[
+                (twitter_data["time_created"].dt.date <= end_date)
+            ]
         if len(selected_hashtags) > 0:
             twitter_data = twitter_data.loc[
                 (twitter_data["hashtags"].str.contains("|".join(selected_hashtags)))
@@ -96,6 +103,8 @@ with st.spinner("Loading"):
 twitter_meta_data["tweets"] = str(twitter_data.shape[0])
 twitter_meta_data["retweets"] = str(np.sum([ int(x["retweet_count"]) for idx, x in twitter_data.iterrows() ]))
 twitter_meta_data["likes"] = str(np.sum([ int(x["favorite_count"]) for idx, x in twitter_data.iterrows() ]))
+twitter_meta_data["hashtags"] = get_hashtags(twitter_data)
+twitter_meta_data["movie_characters"] = get_movie_characters(twitter_data)
 twitter_meta_data["daily_report"] = get_daily_report(twitter_data)
 
 
