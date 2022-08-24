@@ -2,3 +2,4 @@ stopwords
 vader_lexicon
 words
 punkt
+wordnet
