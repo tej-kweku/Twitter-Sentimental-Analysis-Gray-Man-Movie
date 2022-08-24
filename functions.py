@@ -32,6 +32,11 @@ from emot.emo_unicode import UNICODE_EMOJI, EMOTICONS_EMO
 from sklearn.feature_extraction.text import CountVectorizer
 
 
+nltk.download("stopword")
+nltk.download("words")
+nltk.download("punkt")
+
+
 tweets_file_name = "tweets_grayman.csv"
 
 base_path = "/home/tejkweku/Personal Studies/Udacity/ALx-T Data Science/Career Support/Project/v3/"
