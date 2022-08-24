@@ -13,9 +13,6 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 
-from PIL import Image
-from nltk.sentiment.vader import SentimentIntensityAnalyzer
-from langdetect import detect
 from textblob import TextBlob
 
 import nltk
@@ -25,9 +22,10 @@ from nltk.tokenize import word_tokenize # to create word tokens
 from nltk.stem.porter import * # (I played around with Stemmer and decided to use Lemmatizer instead)
 from nltk.stem import WordNetLemmatizer # to reduce words to orginal form
 from nltk import pos_tag # For Parts of Speech tagging
+from nltk.sentiment.vader import SentimentIntensityAnalyzer
 from nltk.corpus import words # Get all words in english language
 
-from emot.emo_unicode import UNICODE_EMOJI, EMOTICONS_EMO
+# from emot.emo_unicode import UNICODE_EMOJI, EMOTICONS_EMO
 
 from sklearn.feature_extraction.text import CountVectorizer
 
@@ -71,7 +69,7 @@ common_words = ['netflix']
 alphabets = list(string.ascii_lowercase)
 stop_words = stop_words + user_stop_words + alphabets + common_words + grayman_characters
 #word_list = words.words()  # all words in English language
-emojis = list(UNICODE_EMOJI.keys())
+# emojis = list(UNICODE_EMOJI.keys())
 
 
 os.chdir(base_path)
@@ -186,7 +184,7 @@ def refine_tweet_text(tweet):
     # Remove stopwords
     tweet_tokens = word_tokenize(tweet)  # convert string to tokens
     filtered_words = [w for w in tweet_tokens if w not in stop_words]
-    filtered_words = [w for w in filtered_words if w not in emojis]
+    # filtered_words = [w for w in filtered_words if w not in emojis]
     
     # Remove punctuations
     unpunctuated_words = [w for w in filtered_words if w not in string.punctuation]
