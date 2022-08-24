@@ -1,0 +1,4 @@
+stopwords
+vader
+words
+punkt

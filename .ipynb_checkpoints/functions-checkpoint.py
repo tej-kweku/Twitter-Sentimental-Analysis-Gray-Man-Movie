@@ -15,11 +15,12 @@ import numpy as np
 
 from textblob import TextBlob
 
+import nltk
+
 nltk.download("stopword")
 nltk.download("words")
 nltk.download("punkt")
 
-import nltk
 from nltk.stem import SnowballStemmer
 from nltk.corpus import stopwords # get stopwords from NLTK library
 from nltk.tokenize import word_tokenize # to create word tokens
