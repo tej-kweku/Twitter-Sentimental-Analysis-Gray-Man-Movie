@@ -134,13 +134,16 @@ def extract_hashtags(tweet):
 
 
 def get_hashtags(tweets_df):
+    search_words = "thegrayman OR grayman OR thegreyman OR greyman OR ryangosling OR chrisevans OR sierra6 OR #thegrayman OR #grayman OR #thegreyman OR #greyman OR #ryangosling OR #chrisevans #sierra6"
     hashtags_list = tweets_df['hashtags'].tolist()
     hashtags = []
 
     for item in hashtags_list:
         item = item.split()
         for i in item:
-            hashtags.append(i)
+            # hashtags.append(i)
+            if i in search_words:
+                hashtags.append(i)
 
     counts = Counter(hashtags)
     hashtags_df = pd.DataFrame.from_dict(counts, orient='index').reset_index()
@@ -223,7 +226,7 @@ def get_daily_report(tweet_df):
     general_df["Type"] = general_df["Type"].replace({
         "tweet": "Tweet",
         "retweet_count": "Retweet",
-        "favorite_count": "Likes"
+        "favorite_count": "Like"
     })
     
     sentiments_df = tweet_df.groupby(by=["day", "sentiment"]).count()["polarity"]
@@ -236,6 +239,7 @@ def get_daily_report(tweet_df):
     }
     
    
+@st.cache(allow_output_mutation=True)
 def preprocess_tweets():
     # print("inner: ", updated_ts)
     cols = ["tweet_id", "created_at", "text", "location", "retweet", "favorite"]

@@ -93,7 +93,7 @@ if (len(sys.argv) > 1) and (sys.argv[1] == "restart"):
     log_text = "{}: {}".format(time.asctime(), "restarting\n")
     log(log_text)
             
-search_words = "thegrayman OR grayman OR thegreyman OR greyman OR #thegrayman OR #grayman OR #thegreyman OR #greyman"
+search_words = "thegrayman OR grayman OR thegreyman OR greyman OR ryangosling OR chrisevans OR sierra6 OR #thegrayman OR #grayman OR #thegreyman OR #greyman OR #ryangosling OR #chrisevans #sierra6"
 # Exclude Links, retweets, replies
 search_query = search_words + " -filter:retweets AND -filter:replies"
 
