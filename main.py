@@ -109,8 +109,8 @@ with st.spinner("Loading"):
             ]
 
 twitter_meta_data["tweets"] = str(twitter_data.shape[0])
-twitter_meta_data["retweets"] = str(np.sum([ int(x["retweet_count"]) for idx, x in twitter_data.iterrows() ]))
-twitter_meta_data["likes"] = str(np.sum([ int(x["favorite_count"]) for idx, x in twitter_data.iterrows() ]))
+twitter_meta_data["retweets"] = str(sum([ int(x["retweet_count"]) for idx, x in twitter_data.iterrows() ]))
+twitter_meta_data["likes"] = str(sum([ int(x["favorite_count"]) for idx, x in twitter_data.iterrows() ]))
 twitter_meta_data["hashtags"] = get_hashtags(twitter_data)
 twitter_meta_data["movie_characters"] = get_movie_characters(twitter_data)
 twitter_meta_data["daily_report"] = get_daily_report(twitter_data)
@@ -251,7 +251,7 @@ log_text = "{}: Reload Completed {} tweet(s)\n".format(time.asctime(), twitter_d
 log(log_text, "analysis")
 
 # reload_interval = 60000   # every minute
-# reload_interval = 300000   # every 5 minutes
+reload_interval = 300000   # every 5 minutes
 # reload_interval = 120000  # every 20 minutes
-reload_interval = 1800000  # every 30 minuntes
+# reload_interval = 1800000  # every 30 minuntes
 count = st_autorefresh(interval=reload_interval, key="tsagrayman")

@@ -38,6 +38,7 @@ def log(log_text, where="miner"):
     elif where == "analysis":
         log_file_name = analysis_log_file_name
         
+    print(log_text)
     with open(log_file_name,'a', newline='', encoding='utf-8') as log_file:
         log_file.write(log_text)
 
@@ -130,7 +131,7 @@ if __name__ == "__main__":
     mine()
     
     schedule = Scheduler()
-    schedule.cyclic(dt.timedelta(minutes=120), mine) 
+    schedule.cyclic(dt.timedelta(minutes=2), mine) 
         
     while True:
         schedule.exec_jobs()

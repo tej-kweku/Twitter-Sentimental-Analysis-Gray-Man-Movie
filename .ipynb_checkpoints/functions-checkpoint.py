@@ -42,7 +42,7 @@ tweets_file_name = "tweets_grayman.csv"
 current_file_name = "tweets_grayman.csv"
 latest_file_name = "tweets_grayman_latest.csv"
 miner_log_file_name = "miner_log.txt"
-analysis_log_file_name = "analysis_log.txt"
+analysis_log_file_name = "./analysis_log.txt"
 base_path = "."
 
 here_URL = "https://geocode.search.hereapi.com/v1/geocode"  # Deevloper Here API link
