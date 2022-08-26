@@ -248,6 +248,7 @@ with c3_right_col:
 
 
 log_text = "{}: Reload Completed {} tweet(s)\n".format(time.asctime(), twitter_data.shape[0])
+print(log_text)
 log(log_text, "analysis")
 
 # reload_interval = 60000   # every minute
