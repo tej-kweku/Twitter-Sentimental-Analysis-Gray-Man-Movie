@@ -251,8 +251,5 @@ log_text = "{}: Reload Completed {} tweet(s)\n".format(time.asctime(), twitter_d
 print(log_text)
 log(log_text, "analysis")
 
-# reload_interval = 60000   # every minute
-reload_interval = 300000   # every 5 minutes
-# reload_interval = 120000  # every 20 minutes
-# reload_interval = 1800000  # every 30 minuntes
+reload_interval = 1800000  # every 30 minuntes
 count = st_autorefresh(interval=reload_interval, key="tsagrayman")

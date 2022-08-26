@@ -94,7 +94,7 @@ def mine():
         log_text = "{}: {}".format(time.asctime(), "restarting\n")
         log(log_text, "miner")
 
-    search_words = "thegrayman OR grayman OR thegreyman OR greyman OR ryangosling OR chrisevans OR sierra6 OR #thegrayman OR #grayman OR #thegreyman OR #greyman OR #ryangosling OR #chrisevans #sierra6"
+    search_words = "thegrayman OR grayman OR thegreyman OR greyman OR ryangosling OR chrisevans OR sierra6 OR #thegrayman OR #grayman OR #thegreyman OR #greyman OR #ryangosling OR #chrisevans OR #sierra6"
     search_query = search_words + " -filter:retweets AND -filter:replies"
 
     # get the current tweets
@@ -131,7 +131,7 @@ if __name__ == "__main__":
     mine()
     
     schedule = Scheduler()
-    schedule.cyclic(dt.timedelta(minutes=2), mine) 
+    schedule.cyclic(dt.timedelta(minutes=360), mine) 
         
     while True:
         schedule.exec_jobs()
