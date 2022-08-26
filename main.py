@@ -10,6 +10,8 @@ import plotly.figure_factory as ff
 import plotly.express as px
 import warnings
 
+from streamlit_autorefresh import st_autorefresh
+
 from functions import *
 
 pd.set_option('display.max_rows', 50)
@@ -17,12 +19,9 @@ pd.set_option('display.max_columns', 50)
 warnings.filterwarnings('ignore')
 
 
-# base_path = "/home/tejkweku/Personal Studies/Udacity/ALx-T Data Science/Career Support/Project/v3/"
-
 base_path = "."
 
 os.chdir(base_path)
-
         
 st.set_page_config(
     layout="wide", 
@@ -38,13 +37,17 @@ twitter_meta_data = None
 # global variable to store Twitter data
 twitter_data = None
 
+
+def reload_data():
+    twitter_data = preprocess_tweets()
+        
 # fetch the movie data
 with st.spinner("Loading"):
     # omdb_data = {'Title': 'The Gray Man', 'Year': '2022', 'Rated': 'PG-13', 'Released': '22 Jul 2022', 'Runtime': '122 min', 'Genre': 'Action, Thriller', 'Director': 'Anthony Russo, Joe Russo', 'Writer': 'Joe Russo, Christopher Markus, Stephen McFeely', 'Actors': 'Ryan Gosling, Chris Evans, Ana de Armas', 'Plot': "When the CIA's most skilled operative-whose true identity is known to none-accidentally uncovers dark agency secrets, a psychopathic former colleague puts a bounty on his head, setting off a global manhunt by international assassins.", 'Language': 'English', 'Country': 'United States, Czech Republic', 'Awards': 'N/A', 'Poster': 'https://m.media-amazon.com/images/M/MV5BOWY4MmFiY2QtMzE1YS00NTg1LWIwOTQtYTI4ZGUzNWIxNTVmXkEyXkFqcGdeQXVyODk4OTc3MTY@._V1_SX300.jpg', 'Ratings': [{'Source': 'Internet Movie Database', 'Value': '6.5/10'}, {'Source': 'Rotten Tomatoes', 'Value': '46%'}, {'Source': 'Metacritic', 'Value': '49/100'}], 'Metascore': '49', 'imdbRating': '6.5', 'imdbVotes': '134,431', 'imdbID': 'tt1649418', 'Type': 'movie', 'DVD': '22 Jul 2022', 'BoxOffice': 'N/A', 'Production': 'N/A', 'Website': 'N/A', 'Response': 'True'}
 
     raw_data = fetch_movie_data_from_internet()
     omdb_data = json.loads(raw_data)
-    
+
     # # print(json.loads(raw_data).keys()
     # print(json.loads(raw_data))
     # twitter_meta_data = movie_twitter_metadata("gray man")
@@ -52,22 +55,27 @@ with st.spinner("Loading"):
     twitter_data = preprocess_tweets()
     # st.dataframe(twitter_data)
 
+    # if twitter_data.shape[0] == 0:
+    #     mine()
+    #     twitter_data = preprocess_tweets()
+        
     twitter_meta_data = dict()    
-    
+
     with st.sidebar:
         st.subheader("Filters")
-        
+
         today = datetime.date.today()
-        yesterday = today + datetime.timedelta(days=-1)
-        start_date = st.date_input('Start date', yesterday)
+        # yesterday = today + datetime.timedelta(days=-1)
+        prev_day = datetime.date(2022, 8, 1)
+        start_date = st.date_input('Start date', prev_day)
         end_date = st.date_input('End date', today)
-        
+
         sel_hashtags = [ x[1:] for x in get_hashtags(twitter_data)["hashtags"].values ]
         selected_hashtags = st.multiselect(
             "Hashtags",
             sel_hashtags
         )
-        
+
         selected_sentiment = st.multiselect(
             "Sentiment",
             ("Negative", "Positive")
@@ -78,7 +86,7 @@ with st.spinner("Loading"):
             "Movie Characters",
             sel_movie_characters
         )
-        
+
         if start_date:
             twitter_data = twitter_data.loc[
                 (twitter_data["time_created"].dt.date >= start_date)
@@ -99,7 +107,7 @@ with st.spinner("Loading"):
             twitter_data = twitter_data.loc[
                 (twitter_data["movie_characters"].str.contains("|".join(selected_movie_character))) 
             ]
-            
+
 twitter_meta_data["tweets"] = str(twitter_data.shape[0])
 twitter_meta_data["retweets"] = str(np.sum([ int(x["retweet_count"]) for idx, x in twitter_data.iterrows() ]))
 twitter_meta_data["likes"] = str(np.sum([ int(x["favorite_count"]) for idx, x in twitter_data.iterrows() ]))
@@ -144,12 +152,10 @@ c1_1_right_col.write(omdb_data["Plot"])
 c1_1_right_col.write("Director:\t" + omdb_data["Director"])
 c1_1_right_col.write("Genre:\t" + omdb_data["Genre"])
 c1_1_right_col.write("Actors:\t" + omdb_data["Actors"])
-# c1_1_right_col.write("Ratings:\t" + str(omdb_data["Ratings"]))
 c1_1_right_col.write("Year:\t" + omdb_data["Year"])
 c1_1_right_col.write("Runtime:\t" + omdb_data["Runtime"])
 c1_1_right_col.write("Country:\t" + omdb_data["Country"])
 
-# st.write(twitter_data)
 
 # space(2)
 
@@ -200,8 +206,8 @@ with c2_right_col:
 space(2)
 
 c3 = st.container()    
-# c3_left_col, c3_right_col = c3.columns([9, 1])
-c3_left_col = c3
+c3_left_col, c3_right_col = c3.columns([6, 3])
+# c3_left_col = c3
 with c3_left_col:
     # c3_left_col.markdown("##### Trend")  
     c3_left_col.subheader("Trend")  
@@ -234,12 +240,18 @@ with c3_left_col:
         c3_left_col_tab_2.plotly_chart(fig, use_container_width=True)
 
 
-# with c3_right_col:
-#     # c3_right_col.markdown("##### Tweets")  
-#     c3_right_col.subheader("Tweets")
-#     # st.markdown("""---""")
-#     c3_right_col.dataframe(twitter_data.sample(100)["tweet"])
+with c3_right_col:
+    # c3_right_col.markdown("##### Tweets")  
+    c3_right_col.subheader("Tweets")
+    # st.markdown("""---""")
+    c3_right_col.dataframe(twitter_data.sample(100)["tweet"])
 
 
-analysis_log("{}: Reload Completed {} tweet(s)\n".format(time.asctime(), twitter_data.shape[0]))
-    
+log_text = "{}: Reload Completed {} tweet(s)\n".format(time.asctime(), twitter_data.shape[0])
+log(log_text, "analysis")
+
+# reload_interval = 60000   # every minute
+# reload_interval = 300000   # every 5 minutes
+# reload_interval = 120000  # every 20 minutes
+reload_interval = 1800000  # every 30 minuntes
+count = st_autorefresh(interval=reload_interval, key="tsagrayman")

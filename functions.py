@@ -7,6 +7,10 @@ import string
 import time
 import os
 import random
+import csv # to read and write csv files
+import glob # to retrieve files/pathnames matching a specified pattern. 
+import sys
+import datetime as dt
 
 import tweepy
 import streamlit as st
@@ -16,10 +20,6 @@ import numpy as np
 from textblob import TextBlob
 
 import nltk
-
-# nltk.download("stopword")
-# nltk.download("words")
-# nltk.download("punkt")
 
 from nltk.stem import SnowballStemmer
 from nltk.corpus import stopwords # get stopwords from NLTK library
@@ -34,11 +34,15 @@ from nltk.corpus import words # Get all words in english language
 
 from sklearn.feature_extraction.text import CountVectorizer
 
+from scheduler import Scheduler
+import scheduler.trigger as trigger
+
 
 tweets_file_name = "tweets_grayman.csv"
-
-# base_path = "/home/tejkweku/Personal Studies/Udacity/ALx-T Data Science/Career Support/Project/v3/"
-
+current_file_name = "tweets_grayman.csv"
+latest_file_name = "tweets_grayman_latest.csv"
+miner_log_file_name = "miner_log.txt"
+analysis_log_file_name = "analysis_log.txt"
 base_path = "."
 
 here_URL = "https://geocode.search.hereapi.com/v1/geocode"  # Deevloper Here API link
@@ -52,7 +56,6 @@ bearer_token = "AAAAAAAAAAAAAAAAAAAAAFCLgAEAAAAAFbl7j0Y3EYiuXAevDNsxXeIjTS8%3Dsz
 
 auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
 auth.set_access_token(access_token, access_token_secret)
-
 api = tweepy.API(auth, wait_on_rate_limit=True)
 
 tweepy_client = tweepy.Client(bearer_token)
@@ -64,22 +67,69 @@ tweets_long_string = None
 
 grayman_characters = ["six", "lloyd", "hansen", "dani", "miranda", "fitzroy", "suzanne", "brewer", "avik", "san", "margaret", "cahill", "carmichael", "laszlo", "sosa", "claire", "father", "dulin", "perini", "markham", "dining", "car", "buyer", "young", "dawson", "officer", "zelezny"]
 stop_words = list(stopwords.words('english'))
-user_stop_words = ['2020', '2021','year', 'many', 'much', 'amp', 'next', 'cant', 'wont', 'hadnt','havent', 'hasnt', 'isnt', 'shouldnt', 'couldnt', 'wasnt', 'werent','mustnt', '’', '...', '..', '.', '.....', '....',  'been…','aht', 've', 'next',"i'll","we'll","they'll","you'll","she'll","he'll","'ll","n't","'s",'anyone','today','yesterday','day', 'already']
+
 
 # The list below are common words which will not be relevant in our analysis.
 common_words = ['netflix']
 alphabets = list(string.ascii_lowercase)
-stop_words = stop_words + user_stop_words + alphabets + common_words + grayman_characters
+stop_words = stop_words + alphabets + common_words + grayman_characters
 #word_list = words.words()  # all words in English language
 # emojis = list(UNICODE_EMOJI.keys())
 
 
 os.chdir(base_path)
 
-def analysis_log(log_text):
-    with open("analysis_log.txt",'a', newline='', encoding='utf-8') as log_file:
-        log_file.write(log_text)
+
+def log(log_text, where="miner"):
+    if where == "miner":
+        log_file_name = miner_log_file_name
+    elif where == "analysis":
+        log_file_name = analysis_log_file_name
         
+    with open(log_file_name,'a', newline='', encoding='utf-8') as log_file:
+        log_file.write(log_text)
+                
+
+def get_tweets(search_query, num_tweets, period="current", max_id_num=None, since_id_num=None):
+    file_name = None
+    if period == "current":
+        tweet_list = [
+            tweets for tweets in tweepy.Cursor(
+                api.search_tweets,
+                q=search_query,
+                lang="en", 
+                tweet_mode='extended'
+            ).items(num_tweets)
+        ]
+        file_name = current_file_name
+    elif period == "latest":
+        tweet_list = [
+            tweets for tweets in tweepy.Cursor(
+                api.search_tweets,
+                q=search_query,
+                lang="en",
+                since_id=since_id_num, # since_id is the most recent tweet id you have
+                tweet_mode='extended'
+            ).items(num_tweets)
+        ]
+        file_name = latest_file_name
+    file_name = file_name
+    with open(file_name,'a', newline='', encoding='utf-8') as csvFile:
+        csv_writer = csv.writer(csvFile, delimiter=',') # create an instance of csv object
+        # Begin scraping the tweets individually:
+        for tweet in tweet_list:
+            tweet_id = tweet.id # get Tweet ID result
+            created_at = tweet.created_at # get time tweet was created
+            text = tweet.full_text # retrieve full tweet text
+            location = tweet.user.location # retrieve user location
+            retweet = tweet.retweet_count # retrieve number of retweets
+            favorite = tweet.favorite_count # retrieve number of likes
+            
+            csv_writer.writerow([tweet_id, created_at, text, location, retweet, favorite])
+        log_text = "{}: {}\t {}\t{} tweet(s)\n".format(time.asctime(), period, file_name, len(tweet_list))
+        log(log_text, "miner")
+        print("Mining completed")
+             
 
 def space(num_lines=1):
     """Adds empty lines to the Streamlit app."""
@@ -134,7 +184,7 @@ def extract_hashtags(tweet):
 
 
 def get_hashtags(tweets_df):
-    search_words = "thegrayman OR grayman OR thegreyman OR greyman OR ryangosling OR chrisevans OR sierra6 OR #thegrayman OR #grayman OR #thegreyman OR #greyman OR #ryangosling OR #chrisevans #sierra6"
+    search_words = "thegrayman OR grayman OR thegreyman OR greyman OR ryangosling OR chrisevans OR sierra6 OR #thegrayman OR #grayman OR #thegreyman OR #greyman OR #ryangosling OR #chrisevans OR #sierra6"
     hashtags_list = tweets_df['hashtags'].tolist()
     hashtags = []
 
@@ -239,47 +289,50 @@ def get_daily_report(tweet_df):
     }
     
    
-@st.cache(allow_output_mutation=True)
+# @st.cache(allow_output_mutation=True)
 def preprocess_tweets():
     # print("inner: ", updated_ts)
-    cols = ["tweet_id", "created_at", "text", "location", "retweet", "favorite"]
-    tweets_df = pd.read_csv(tweets_file_name, header=None, index_col=None, names=cols)
-    
-#     tweets_df['location_data'] = tweets_df['location'].apply(get_coordinates)
-#     tweets_df['country_name_code'] = tweets_df['location_data'].apply(getLocation) #apply getLocation function
+    try:
+        cols = ["tweet_id", "created_at", "text", "location", "retweet", "favorite"]
+        tweets_df = pd.read_csv(current_file_name, header=None, index_col=None, names=cols)
 
-#     # Extraction of Country names to different columns
-#     tweets_df[['country_code','country_name']] = pd.DataFrame(tweets_df['country_name_code'].tolist(),index=tweets_df.index)
-#     # Drop unnecessary columns
-#     tweets_df.drop(['location','location_data','country_name_code'], axis = 1, inplace = True)
-    
-    # Rename columns
-    # tweets_df.columns = ['tweet_id','time_created','tweet','retweet_count','favorite_count','country_code','country_name']
-    tweets_df.columns = ['tweet_id','time_created','tweet', 'location', 'retweet_count','favorite_count']
-    
-    tweets_df['time_created'] = pd.to_datetime(tweets_df['time_created'])
-    
-    # extract hashtags
-    tweets_df['hashtags'] = tweets_df['tweet'].apply(extract_hashtags)
-    
-    # extract movie characters
-    tweets_df['movie_characters'] = tweets_df['tweet'].apply(extract_movie_characters)
-    
-    # refine tweet text
-    tweets_df['tweet_refined'] = tweets_df['tweet'].apply(refine_tweet_text)
-    tweets_long_string = tweets_df['tweet_refined'].tolist()
-    tweets_long_string = " ".join(tweets_long_string)
-    
-    tweets_df['polarity']=tweets_df['tweet_refined'].apply(get_polarity)
-    tweets_df['sentiment']=tweets_df['polarity'].apply(get_sentiment_textblob)
-    
-    # tweets_df.to_csv("processed_tweets_grayman.csv", encoding="utf-8", index=False)
-    
+    #     tweets_df['location_data'] = tweets_df['location'].apply(get_coordinates)
+    #     tweets_df['country_name_code'] = tweets_df['location_data'].apply(getLocation) #apply getLocation function
+
+    #     # Extraction of Country names to different columns
+    #     tweets_df[['country_code','country_name']] = pd.DataFrame(tweets_df['country_name_code'].tolist(),index=tweets_df.index)
+    #     # Drop unnecessary columns
+    #     tweets_df.drop(['location','location_data','country_name_code'], axis = 1, inplace = True)
+
+        # Rename columns
+        # tweets_df.columns = ['tweet_id','time_created','tweet','retweet_count','favorite_count','country_code','country_name']
+        tweets_df.columns = ['tweet_id','time_created','tweet', 'location', 'retweet_count','favorite_count']
+
+        tweets_df['time_created'] = pd.to_datetime(tweets_df['time_created'])
+
+        # extract hashtags
+        tweets_df['hashtags'] = tweets_df['tweet'].apply(extract_hashtags)
+
+        # extract movie characters
+        tweets_df['movie_characters'] = tweets_df['tweet'].apply(extract_movie_characters)
+
+        # refine tweet text
+        tweets_df['tweet_refined'] = tweets_df['tweet'].apply(refine_tweet_text)
+        tweets_long_string = tweets_df['tweet_refined'].tolist()
+        tweets_long_string = " ".join(tweets_long_string)
+
+        tweets_df['polarity']=tweets_df['tweet_refined'].apply(get_polarity)
+        tweets_df['sentiment']=tweets_df['polarity'].apply(get_sentiment_textblob)
+
+        # tweets_df.to_csv("processed_tweets_grayman.csv", encoding="utf-8", index=False)
+    except FileNotFoundError as err:
+        tweets_df = pd.DataFrame()
+
     return tweets_df
 
 
 # def load_tweets():
-#     updated_ts = time.ctime(os.path.getmtime(tweets_file_name))
+#     updated_ts = time.ctime(os.path.getmtime(current_file_name))
 #     st.write(updated_ts)
     
 #     return preprocess_tweets()
