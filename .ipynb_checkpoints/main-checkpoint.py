@@ -43,29 +43,16 @@ def reload_data():
         
 # fetch the movie data
 with st.spinner("Loading"):
-    # omdb_data = {'Title': 'The Gray Man', 'Year': '2022', 'Rated': 'PG-13', 'Released': '22 Jul 2022', 'Runtime': '122 min', 'Genre': 'Action, Thriller', 'Director': 'Anthony Russo, Joe Russo', 'Writer': 'Joe Russo, Christopher Markus, Stephen McFeely', 'Actors': 'Ryan Gosling, Chris Evans, Ana de Armas', 'Plot': "When the CIA's most skilled operative-whose true identity is known to none-accidentally uncovers dark agency secrets, a psychopathic former colleague puts a bounty on his head, setting off a global manhunt by international assassins.", 'Language': 'English', 'Country': 'United States, Czech Republic', 'Awards': 'N/A', 'Poster': 'https://m.media-amazon.com/images/M/MV5BOWY4MmFiY2QtMzE1YS00NTg1LWIwOTQtYTI4ZGUzNWIxNTVmXkEyXkFqcGdeQXVyODk4OTc3MTY@._V1_SX300.jpg', 'Ratings': [{'Source': 'Internet Movie Database', 'Value': '6.5/10'}, {'Source': 'Rotten Tomatoes', 'Value': '46%'}, {'Source': 'Metacritic', 'Value': '49/100'}], 'Metascore': '49', 'imdbRating': '6.5', 'imdbVotes': '134,431', 'imdbID': 'tt1649418', 'Type': 'movie', 'DVD': '22 Jul 2022', 'BoxOffice': 'N/A', 'Production': 'N/A', 'Website': 'N/A', 'Response': 'True'}
-
     raw_data = fetch_movie_data_from_internet()
     omdb_data = json.loads(raw_data)
 
-    # # print(json.loads(raw_data).keys()
-    # print(json.loads(raw_data))
-    # twitter_meta_data = movie_twitter_metadata("gray man")
-
-    twitter_data = preprocess_tweets()
-    # st.dataframe(twitter_data)
-
-    # if twitter_data.shape[0] == 0:
-    #     mine()
-    #     twitter_data = preprocess_tweets()
-        
+    twitter_data = preprocess_tweets()        
     twitter_meta_data = dict()    
 
     with st.sidebar:
         st.subheader("Filters")
 
         today = datetime.date.today()
-        # yesterday = today + datetime.timedelta(days=-1)
         prev_day = datetime.date(2022, 8, 1)
         start_date = st.date_input('Start date', prev_day)
         end_date = st.date_input('End date', today)
@@ -143,7 +130,6 @@ space(2)
 
 c1_1_left_col.markdown("<p style='text-align: center; vertical-align: center;; margin-bottom: 0px'>Likes</p>", unsafe_allow_html=True)
 c1_1_left_col.markdown("<h1 style='text-align: center; vertical-align: center; margin:0px 0px 50px 0px'; padding-top:0px>" + twitter_meta_data["likes"] + "<i class='fa-solid fa-xs fa-heart'></i></h1>", unsafe_allow_html=True)
-# space(2)
 
 c1_1_middle_col.image(omdb_data["Poster"])
 
@@ -156,15 +142,10 @@ c1_1_right_col.write("Year:\t" + omdb_data["Year"])
 c1_1_right_col.write("Runtime:\t" + omdb_data["Runtime"])
 c1_1_right_col.write("Country:\t" + omdb_data["Country"])
 
-
-# space(2)
-
 c2 = st.container()
 c2_left_col, c2_middle_col, c2_right_col = c2.columns([3, 3, 3])
 with c2_left_col:
-    # c2_left_col.markdown("##### Top 10 #Hashtags")
     c2_left_col.subheader("Top 10 Hashtags")
-    # st.markdown("""---""")
     fig = px.bar(
         twitter_meta_data["hashtags"][:10], 
         x="count", 
@@ -172,28 +153,21 @@ with c2_left_col:
         labels={"hashtags": "Hashtag", "count": "Mentions"}
     )
     c2_left_col.plotly_chart(fig, use_container_width=True)
-    # st.markdown("""---""")
 
 with c2_middle_col:
-    # c2_middle_col.markdown("##### Sentiments")
     c2_middle_col.subheader("Sentiments")
-    # st.markdown("""---""")
     sentiments_df = get_sentiments(twitter_data)
     fig = px.pie(
         sentiments_df, 
         values='Value', 
         names='Sentiments',
         hole=0.3,
-        # textinfo="label+percent",
         color_discrete_map={'Negative':'red','Positive':'green'}
     )
     c2_middle_col.plotly_chart(fig, use_container_width=True)
-    # st.markdown("""---""")
 
 with c2_right_col:
-    # c2_right_col.markdown("##### Most Mentioned Characters")
     c2_right_col.subheader("Most Mentioned Characters")
-    # st.markdown("""---""")
     fig = px.bar(
         twitter_meta_data["movie_characters"][:10], 
         x="count", 
@@ -201,18 +175,13 @@ with c2_right_col:
         labels={"movie_characters": "Movie Character", "count": "Mentions"}
     )
     c2_right_col.plotly_chart(fig, use_container_width=True)
-    # st.markdown("""---""")
 
 space(2)
 
 c3 = st.container()    
 c3_left_col, c3_right_col = c3.columns([6, 3])
-# c3_left_col = c3
 with c3_left_col:
-    # c3_left_col.markdown("##### Trend")  
     c3_left_col.subheader("Trend")  
-    # st.markdown("""---""")
-    # c3.dataframe(twitter_meta_data["daily_report"])
     c3_left_col_tab_1, c3_left_col_tab_2 = c3_left_col.tabs(["General", "Sentiment"])
     with c3_left_col_tab_1:
         fig = px.line(
@@ -225,7 +194,6 @@ with c3_left_col:
             height=500
         )
         c3_left_col_tab_1.plotly_chart(fig, use_container_width=True)
-    # st.markdown("""---""")
 
     with c3_left_col_tab_2:
         fig = px.line(
@@ -241,9 +209,7 @@ with c3_left_col:
 
 
 with c3_right_col:
-    # c3_right_col.markdown("##### Tweets")  
     c3_right_col.subheader("Tweets")
-    # st.markdown("""---""")
     c3_right_col.dataframe(twitter_data.sample(100)["tweet"])
 
 

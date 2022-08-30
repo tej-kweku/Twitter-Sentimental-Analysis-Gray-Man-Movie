@@ -42,11 +42,8 @@ tweets_file_name = "tweets_grayman.csv"
 current_file_name = "tweets_grayman.csv"
 latest_file_name = "tweets_grayman_latest.csv"
 miner_log_file_name = "miner_log.txt"
-analysis_log_file_name = "./analysis_log.txt"
+analysis_log_file_name = "analysis_log.txt"
 base_path = "."
-
-here_URL = "https://geocode.search.hereapi.com/v1/geocode"  # Deevloper Here API link
-here_api_key = 'dZutQ0xR3yZaTGC4Ws5BHUKpzYoaSx6awHEW0aOAMAY'  # Acquire api key from developer.here.com
 
 consumer_key = "gEro0S6tWFM0H1ujdND2lLemF"
 consumer_secret = "Ij2eXRiA6lzzSaHnb6EAcVJvKs3jXd2Tj1WUhVmvxP3KGasd5G"
@@ -149,33 +146,6 @@ def fetch_movie_data_from_internet():
 def percentage(part,whole):
     return 100 * float(part)/float(whole)
 
-    
-# get the location data
-def get_coordinates(location):
-    PARAMS = {'apikey': here_api_key, 'q': location} # required parameters
-    r = requests.get(url=here_URL, params=PARAMS)  # pass in required parameters
-    # get raw json file. I did  this because when I combined this step with my "getLocation" function, 
-    # it gave me error for countries with no country_code or country_name. Hence, I needed to use try - except block
-    data = r.json() # Raw json file 
-    return data
-
-
-# a function to extract required coordinates information to the tweets_df dataframe
-def get_location(location):
-    for data in location:
-        if len(location['items']) > 0:
-            try:   
-                country_code = location['items'][0]['address']['countryCode']
-                country_name = location['items'][0]['address']['countryName']
-            except KeyError:
-                country_code = float('Nan')
-                country_name = float('Nan')
-        else: 
-            country_code = float('Nan') 
-            country_name = float('Nan')
-        result = (country_code, country_name)
-    return result
-
 
 def extract_hashtags(tweet):
     tweet = tweet.lower()  #has to be in place
@@ -191,7 +161,6 @@ def get_hashtags(tweets_df):
     for item in hashtags_list:
         item = item.split()
         for i in item:
-            # hashtags.append(i)
             if i in search_words:
                 hashtags.append(i)
 
@@ -281,7 +250,6 @@ def get_daily_report(tweet_df):
     
     sentiments_df = tweet_df.groupby(by=["day", "sentiment"]).count()["polarity"]
     sentiments_df = sentiments_df.reset_index().rename(columns={"polarity": "Count"})
-    # print(sentiments_df)
     
     return {
         "general": general_df,
@@ -289,23 +257,12 @@ def get_daily_report(tweet_df):
     }
     
    
-# @st.cache(allow_output_mutation=True)
 def preprocess_tweets():
-    # print("inner: ", updated_ts)
     try:
         cols = ["tweet_id", "created_at", "text", "location", "retweet", "favorite"]
         tweets_df = pd.read_csv(current_file_name, header=None, index_col=None, names=cols)
 
-    #     tweets_df['location_data'] = tweets_df['location'].apply(get_coordinates)
-    #     tweets_df['country_name_code'] = tweets_df['location_data'].apply(getLocation) #apply getLocation function
-
-    #     # Extraction of Country names to different columns
-    #     tweets_df[['country_code','country_name']] = pd.DataFrame(tweets_df['country_name_code'].tolist(),index=tweets_df.index)
-    #     # Drop unnecessary columns
-    #     tweets_df.drop(['location','location_data','country_name_code'], axis = 1, inplace = True)
-
         # Rename columns
-        # tweets_df.columns = ['tweet_id','time_created','tweet','retweet_count','favorite_count','country_code','country_name']
         tweets_df.columns = ['tweet_id','time_created','tweet', 'location', 'retweet_count','favorite_count']
 
         tweets_df['time_created'] = pd.to_datetime(tweets_df['time_created'])
@@ -323,17 +280,7 @@ def preprocess_tweets():
 
         tweets_df['polarity']=tweets_df['tweet_refined'].apply(get_polarity)
         tweets_df['sentiment']=tweets_df['polarity'].apply(get_sentiment_textblob)
-
-        # tweets_df.to_csv("processed_tweets_grayman.csv", encoding="utf-8", index=False)
     except FileNotFoundError as err:
         tweets_df = pd.DataFrame()
 
     return tweets_df
-
-
-# def load_tweets():
-#     updated_ts = time.ctime(os.path.getmtime(current_file_name))
-#     st.write(updated_ts)
-    
-#     return preprocess_tweets()
-
