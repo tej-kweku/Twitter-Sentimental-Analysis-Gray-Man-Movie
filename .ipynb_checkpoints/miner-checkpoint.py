@@ -100,7 +100,7 @@ def mine():
     # get the current tweets
     if not os.path.exists("tweets_grayman.csv"):
         print("No tweets mined previously. Fetching...") 
-        get_tweets(search_query,5000)
+        get_tweets(search_query,15000)
     else:
         print("Found previously mined tweets")
 
@@ -114,15 +114,16 @@ def mine():
 
     tweets = []
     cols = ["tweet_id", "created_at", "text", "location", "retweet", "favorite"]
-    for file_name in glob.glob("*.csv"):
-        if (os.path.exists(file_name) and os.path.getsize(file_name) > 0):
-            df = pd.read_csv(file_name, index_col=None, header=None, names=cols) 
-            tweets.append(df)
+    # for file_name in glob.glob("*.csv"):
+    for file_name in [ current_file_name, latest_file_name ]:
+        # if (os.path.exists(file_name) and os.path.getsize(file_name) > 0):
+        df = pd.read_csv(file_name, index_col=None, header=None, names=cols) 
+        tweets.append(df)
 
     tweets_df = pd.concat(tweets)
     tweets_df = tweets_df.sort_values(by=["tweet_id"], ascending=False).drop_duplicates()
     
-    os.remove(latest_file_name)
+    # os.remove(latest_file_name)
 
     tweets_df.to_csv("tweets_grayman.csv", header=False, index=False)
 
