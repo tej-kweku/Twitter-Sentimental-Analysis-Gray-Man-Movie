@@ -109,7 +109,7 @@ def mine():
         latest_tweet_id = int(first_tweet[0])
 
     print("Fetching latest tweets")
-    _ = get_tweets(search_query, 5000, "latest", None, latest_tweet_id)
+    get_tweets(search_query, 5000, "latest", None, latest_tweet_id)
 
 
     tweets = []
