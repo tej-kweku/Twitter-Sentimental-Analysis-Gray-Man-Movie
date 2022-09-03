@@ -24,7 +24,7 @@ latest_file_name = "tweets_grayman_latest.csv"
 base_path = "."
 miner_log_file_name = "miner_log.txt"
 
-os.chdir(base_path)
+# os.chdir(base_path)
 
 auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
 auth.set_access_token(access_token, access_token_secret) 
