@@ -74,7 +74,7 @@ stop_words = stop_words + alphabets + common_words + grayman_characters
 # emojis = list(UNICODE_EMOJI.keys())
 
 
-os.chdir(base_path)
+# os.chdir(base_path)
 
 
 def log(log_text, where="miner"):
