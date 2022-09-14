@@ -8,3 +8,4 @@ tweepy==4.10.0
 scheduler==0.7.4
 streamlit_autorefresh
 sklearn
+emot==3.0.0
