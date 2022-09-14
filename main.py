@@ -19,9 +19,9 @@ pd.set_option('display.max_columns', 50)
 warnings.filterwarnings('ignore')
 
 
-base_path = "."
+# base_path = "."
 
-os.chdir(base_path)
+# os.chdir(base_path)
         
 st.set_page_config(
     layout="wide", 
@@ -66,7 +66,7 @@ with st.spinner("Loading"):
 
         selected_sentiment = st.multiselect(
             "Sentiment",
-            ("Negative", "Positive")
+            ("Negative", "Neutral", "Positive")
         )
 
         sel_movie_characters = [ x for x in get_movie_characters(twitter_data)["movie_characters"].values ]
