@@ -7,8 +7,8 @@ import string
 import time
 import os
 import random
-import csv # to read and write csv files
-import glob # to retrieve files/pathnames matching a specified pattern. 
+import csv 
+import glob 
 import sys
 import datetime as dt
 
@@ -18,24 +18,26 @@ import pandas as pd
 import numpy as np
 
 from textblob import TextBlob
+from emot.emo_unicode import UNICODE_EMOJI, EMOTICONS_EMO
 
 import nltk
 
 from nltk.stem import SnowballStemmer
-from nltk.corpus import stopwords # get stopwords from NLTK library
-from nltk.tokenize import word_tokenize # to create word tokens
-from nltk.stem.porter import * # (I played around with Stemmer and decided to use Lemmatizer instead)
-from nltk.stem import WordNetLemmatizer # to reduce words to orginal form
-from nltk import pos_tag # For Parts of Speech tagging
+from nltk.corpus import stopwords 
+from nltk.tokenize import word_tokenize
+from nltk.stem.porter import * 
+from nltk.stem import WordNetLemmatizer 
+from nltk import pos_tag 
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
-from nltk.corpus import words # Get all words in english language
-
-# from emot.emo_unicode import UNICODE_EMOJI, EMOTICONS_EMO
+from nltk.corpus import words 
 
 from sklearn.feature_extraction.text import CountVectorizer
 
 from scheduler import Scheduler
 import scheduler.trigger as trigger
+
+
+movie_data = """{"Title":"The Gray Man","Year":"2022","Rated":"PG-13","Released":"22 Jul 2022","Runtime":"122 min","Genre":"Action, Thriller","Director":"Anthony Russo, Joe Russo","Writer":"Joe Russo, Christopher Markus, Stephen McFeely","Actors":"Ryan Gosling, Chris Evans, Ana de Armas","Plot":"When the CIA's most skilled operative-whose true identity is known to none-accidentally uncovers dark agency secrets, a psychopathic former colleague puts a bounty on his head, setting off a global manhunt by international assassins.","Language":"English","Country":"United States, Czech Republic","Awards":"N/A","Poster":"https://m.media-amazon.com/images/M/MV5BOWY4MmFiY2QtMzE1YS00NTg1LWIwOTQtYTI4ZGUzNWIxNTVmXkEyXkFqcGdeQXVyODk4OTc3MTY@._V1_SX300.jpg","Ratings":[{"Source":"Internet Movie Database","Value":"6.5/10"},{"Source":"Rotten Tomatoes","Value":"46%"},{"Source":"Metacritic","Value":"49/100"}],"Metascore":"49","imdbRating":"6.5","imdbVotes":"134,431","imdbID":"tt1649418","Type":"movie","DVD":"22 Jul 2022","BoxOffice":"N/A","Production":"N/A","Website":"N/A","Response":"True"}"""
 
 
 tweets_file_name = "tweets_grayman.csv"
@@ -64,15 +66,13 @@ tweets_long_string = None
 
 grayman_characters = ["six", "lloyd", "hansen", "dani", "miranda", "fitzroy", "suzanne", "brewer", "avik", "san", "margaret", "cahill", "carmichael", "laszlo", "sosa", "claire", "father", "dulin", "perini", "markham", "dining", "car", "buyer", "young", "dawson", "officer", "zelezny"]
 stop_words = list(stopwords.words('english'))
+emojis = list(UNICODE_EMOJI.keys()) 
 
 
 # The list below are common words which will not be relevant in our analysis.
 common_words = ['netflix']
 alphabets = list(string.ascii_lowercase)
 stop_words = stop_words + alphabets + common_words + grayman_characters
-#word_list = words.words()  # all words in English language
-# emojis = list(UNICODE_EMOJI.keys())
-
 
 # os.chdir(base_path)
 
@@ -118,7 +118,6 @@ def get_tweets(search_query, num_tweets, period="current", max_id_num=None, sinc
             tweet_id = tweet.id # get Tweet ID result
             created_at = tweet.created_at # get time tweet was created
             text = tweet.full_text # retrieve full tweet text
-            location = tweet.user.location # retrieve user location
             retweet = tweet.retweet_count # retrieve number of retweets
             favorite = tweet.favorite_count # retrieve number of likes
             
@@ -208,7 +207,7 @@ def refine_tweet_text(tweet):
     # Remove stopwords
     tweet_tokens = word_tokenize(tweet)  # convert string to tokens
     filtered_words = [w for w in tweet_tokens if w not in stop_words]
-    # filtered_words = [w for w in filtered_words if w not in emojis]
+    filtered_words = [w for w in filtered_words if w not in emojis]
     
     # Remove punctuations
     unpunctuated_words = [w for w in filtered_words if w not in string.punctuation]
@@ -225,6 +224,8 @@ def get_polarity(tweet):
 def get_sentiment_textblob(polarity):
     if polarity < 0:
         return "Negative"
+    elif polarity == 0:
+        return "Neutral"
     else:
         return "Positive"
 

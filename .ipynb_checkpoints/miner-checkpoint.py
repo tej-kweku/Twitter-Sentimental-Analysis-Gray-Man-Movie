@@ -18,19 +18,16 @@ access_token = "1536381857033601025-PaZbQo2eRMwgWn1fyyyvxHLopX0nrT"
 access_token_secret = "EFsBgaJlZ1cQqzpXnSyqrFuxeyjeApMbA7ds4KfYy8K4x"
 
 current_file_name = "tweets_grayman.csv"
-older_file_name = "tweets_grayman_older.csv"
 latest_file_name = "tweets_grayman_latest.csv"
 
 base_path = "."
 miner_log_file_name = "miner_log.txt"
 
-# os.chdir(base_path)
+os.chdir(base_path)
 
 auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
 auth.set_access_token(access_token, access_token_secret) 
 api = tweepy.API(auth,wait_on_rate_limit=True) 
-
-
 
 def log(log_text, where="miner"):
     if where == "miner":
@@ -43,7 +40,7 @@ def log(log_text, where="miner"):
         log_file.write(log_text)
 
 
-def get_tweets(search_query, num_tweets, period="current", max_id_num=None, since_id_num=None):
+def get_tweets(search_query, num_tweets, period="current", since_id_num=None):
     file_name = None
     if period == "current":
         tweet_list = [
@@ -69,15 +66,14 @@ def get_tweets(search_query, num_tweets, period="current", max_id_num=None, sinc
         
     file_name = file_name
     with open(file_name,'a', newline='', encoding='utf-8') as csvFile:
-        csv_writer = csv.writer(csvFile, delimiter=',') # create an instance of csv object
-        # Begin scraping the tweets individually:
+        csv_writer = csv.writer(csvFile, delimiter=',') 
         for tweet in tweet_list:
-            tweet_id = tweet.id # get Tweet ID result
-            created_at = tweet.created_at # get time tweet was created
-            text = tweet.full_text # retrieve full tweet text
-            location = tweet.user.location # retrieve user location
-            retweet = tweet.retweet_count # retrieve number of retweets
-            favorite = tweet.favorite_count # retrieve number of likes
+            tweet_id = tweet.id
+            created_at = tweet.created_at
+            text = tweet.full_text
+            location = tweet.user.location 
+            retweet = tweet.retweet_count
+            favorite = tweet.favorite_count 
             
             csv_writer.writerow([tweet_id, created_at, text, location, retweet, favorite])
         log_text = "{}: {}\t {}\t{} tweet(s)\n".format(time.asctime(), period, file_name, len(tweet_list))
@@ -109,21 +105,17 @@ def mine():
         latest_tweet_id = int(first_tweet[0])
 
     print("Fetching latest tweets")
-    get_tweets(search_query, 5000, "latest", None, latest_tweet_id)
+    get_tweets(search_query, 5000, "latest", latest_tweet_id)
 
 
     tweets = []
     cols = ["tweet_id", "created_at", "text", "location", "retweet", "favorite"]
-    # for file_name in glob.glob("*.csv"):
     for file_name in [ current_file_name, latest_file_name ]:
-        # if (os.path.exists(file_name) and os.path.getsize(file_name) > 0):
         df = pd.read_csv(file_name, index_col=None, header=None, names=cols) 
         tweets.append(df)
 
     tweets_df = pd.concat(tweets)
     tweets_df = tweets_df.sort_values(by=["tweet_id"], ascending=False).drop_duplicates()
-    
-    # os.remove(latest_file_name)
 
     tweets_df.to_csv("tweets_grayman.csv", header=False, index=False)
 
@@ -137,3 +129,5 @@ if __name__ == "__main__":
     while True:
         schedule.exec_jobs()
         time.sleep(1)
+        
+        

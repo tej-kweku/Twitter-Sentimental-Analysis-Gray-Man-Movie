@@ -43,7 +43,8 @@ def reload_data():
         
 # fetch the movie data
 with st.spinner("Loading"):
-    raw_data = fetch_movie_data_from_internet()
+    # raw_data = fetch_movie_data_from_internet()
+    raw_data = movie_data
     omdb_data = json.loads(raw_data)
 
     twitter_data = preprocess_tweets()        
