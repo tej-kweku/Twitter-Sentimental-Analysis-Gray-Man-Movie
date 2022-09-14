@@ -18,7 +18,7 @@ import pandas as pd
 import numpy as np
 
 from textblob import TextBlob
-# from emot.emo_unicode import UNICODE_EMOJI, EMOTICONS_EMO
+from emot.emo_unicode import UNICODE_EMOJI, EMOTICONS_EMO
 
 import nltk
 
@@ -66,7 +66,7 @@ tweets_long_string = None
 
 grayman_characters = ["six", "lloyd", "hansen", "dani", "miranda", "fitzroy", "suzanne", "brewer", "avik", "san", "margaret", "cahill", "carmichael", "laszlo", "sosa", "claire", "father", "dulin", "perini", "markham", "dining", "car", "buyer", "young", "dawson", "officer", "zelezny"]
 stop_words = list(stopwords.words('english'))
-# emojis = list(UNICODE_EMOJI.keys()) 
+emojis = list(UNICODE_EMOJI.keys()) 
 
 
 # The list below are common words which will not be relevant in our analysis.
@@ -207,7 +207,7 @@ def refine_tweet_text(tweet):
     # Remove stopwords
     tweet_tokens = word_tokenize(tweet)  # convert string to tokens
     filtered_words = [w for w in tweet_tokens if w not in stop_words]
-    # filtered_words = [w for w in filtered_words if w not in emojis]
+    filtered_words = [w for w in filtered_words if w not in emojis]
     
     # Remove punctuations
     unpunctuated_words = [w for w in filtered_words if w not in string.punctuation]
