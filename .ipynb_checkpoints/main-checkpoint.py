@@ -22,6 +22,9 @@ warnings.filterwarnings('ignore')
 # base_path = "."
 
 # os.chdir(base_path)
+
+st.experimental_singleton.clear()
+st.experimental_memo.clear()
         
 st.set_page_config(
     layout="wide", 
