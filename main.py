@@ -40,7 +40,7 @@ omdb_data = None
 # global variable to store Twitter meta data
 twitter_meta_data = None
 # global variable to store Twitter data
-twitter_data = None
+twitter_data = []
 
 
 def reload_data():
@@ -48,6 +48,7 @@ def reload_data():
         
 # fetch the movie data
 with st.spinner("Loading"):
+    twitter_data.clear()
     # raw_data = fetch_movie_data_from_internet()
     raw_data = movie_data
     omdb_data = json.loads(raw_data)

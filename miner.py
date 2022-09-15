@@ -114,6 +114,7 @@ def mine():
     cols = ["tweet_id", "created_at", "text", "location", "retweet", "favorite"]
     for file_name in [ current_file_name, latest_file_name ]:
         df = pd.read_csv(file_name, index_col=None, header=None, names=cols) 
+        print(df.shape)
         tweets.append(df)
 
     tweets_df = pd.concat(tweets)
