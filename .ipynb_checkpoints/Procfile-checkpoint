@@ -1,2 +1,2 @@
-web: sh setup.sh && streamlit run main.py
+web: sh setup.sh && python -m streamlit run main.py
 miner: python miner.py
