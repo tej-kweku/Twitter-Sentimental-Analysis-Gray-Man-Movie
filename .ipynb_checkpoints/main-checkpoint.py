@@ -23,6 +23,8 @@ warnings.filterwarnings('ignore')
 
 # os.chdir(base_path)
 
+print("MAIN: ", os.getcwd().upper())
+
 st.experimental_singleton.clear()
 st.experimental_memo.clear()
         

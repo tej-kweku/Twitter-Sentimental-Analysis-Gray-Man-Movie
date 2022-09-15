@@ -11,6 +11,8 @@ import datetime as dt
 from scheduler import Scheduler
 import scheduler.trigger as trigger
 
+print("MINER: ", os.getcwd().upper())
+
 
 consumer_key = "gEro0S6tWFM0H1ujdND2lLemF"
 consumer_secret = "Ij2eXRiA6lzzSaHnb6EAcVJvKs3jXd2Tj1WUhVmvxP3KGasd5G"
