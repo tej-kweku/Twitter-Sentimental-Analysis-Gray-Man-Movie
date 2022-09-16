@@ -121,19 +121,13 @@ def mine():
     tweets_df = tweets_df.sort_values(by=["tweet_id"], ascending=False).drop_duplicates()
 
     tweets_df.to_csv("tweets_grayman.csv", header=False, index=False)
-    
-    
-def test_work():
-    print(dt.datetime.now().isoformat())
 
     
 if __name__ == "__main__":
-    # mine()
-    test_work()
+    mine()
     
     schedule = Scheduler()
-    # schedule.cyclic(dt.timedelta(minutes=30), mine) 
-    schedule.cyclic(dt.timedelta(seconds=10), test_work) 
+    schedule.cyclic(dt.timedelta(minutes=30), mine) 
         
     while True:
         schedule.exec_jobs()
