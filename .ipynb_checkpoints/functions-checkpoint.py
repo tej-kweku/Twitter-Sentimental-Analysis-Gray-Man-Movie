@@ -1,9 +1,5 @@
-import urllib.request
-import urllib.parse
 import json
-from collections import Counter
 import re
-import string
 import time
 import os
 import random
@@ -11,27 +7,12 @@ import csv
 import glob 
 import sys
 import datetime as dt
+from collections import Counter
 
 import tweepy
 import streamlit as st
 import pandas as pd
 import numpy as np
-
-from textblob import TextBlob
-import demoji
-
-import nltk
-
-from nltk.stem import SnowballStemmer
-from nltk.corpus import stopwords 
-from nltk.tokenize import word_tokenize
-from nltk.stem.porter import * 
-from nltk.stem import WordNetLemmatizer 
-from nltk import pos_tag 
-from nltk.sentiment.vader import SentimentIntensityAnalyzer
-from nltk.corpus import words 
-
-from sklearn.feature_extraction.text import CountVectorizer
 
 from scheduler import Scheduler
 import scheduler.trigger as trigger
@@ -67,17 +48,6 @@ tweepy_client = tweepy.Client(bearer_token)
 tweets_df = None
 tweets_long_string = None
 
-# relevant data for NLTK 
-
-grayman_characters = ["six", "lloyd", "hansen", "dani", "miranda", "fitzroy", "suzanne", "brewer", "avik", "san", "margaret", "cahill", "carmichael", "laszlo", "sosa", "claire", "father", "dulin", "perini", "markham", "dining", "car", "buyer", "young", "dawson", "officer", "zelezny"]
-stop_words = list(stopwords.words('english'))
-
-
-# The list below are common words which will not be relevant in our analysis.
-common_words = ['netflix']
-alphabets = list(string.ascii_lowercase)
-stop_words = stop_words + alphabets + common_words + grayman_characters
-
 
 def log(log_text, where="miner"):
     if where == "miner":
@@ -108,11 +78,6 @@ def percentage(part,whole):
     return 100 * float(part)/float(whole)
 
 
-def extract_hashtags(tweet):
-    tweet = tweet.lower()  #has to be in place
-    tweet = re.findall(r'\#\w+',tweet) # Remove hastags with REGEX
-    return " ".join(tweet)
-
 
 def get_hashtags(tweets_df):
     search_words = "thegrayman OR grayman OR thegreyman OR greyman OR ryangosling OR chrisevans OR sierra6 OR #thegrayman OR #grayman OR #thegreyman OR #greyman OR #ryangosling OR #chrisevans OR #sierra6"
@@ -120,10 +85,11 @@ def get_hashtags(tweets_df):
     hashtags = []
 
     for item in hashtags_list:
-        item = item.split()
-        for i in item:
-            if i in search_words:
-                hashtags.append(i)
+        if type(item) == str:
+            item = item.split()
+            for i in item:
+                if i in search_words:
+                    hashtags.append(i)
 
     counts = Counter(hashtags)
     hashtags_df = pd.DataFrame.from_dict(counts, orient='index').reset_index()
@@ -134,22 +100,15 @@ def get_hashtags(tweets_df):
     return hashtags_df
 
 
-# Function to extract movie Characters from each Tweet
-def extract_movie_characters(tweet):
-    tweet = tweet.lower() # Reduce tweet to lower case
-    tweet_tokens = word_tokenize(tweet) # split each word in the tweet for parsing
-    movie_characters = [char for char in tweet_tokens if char in grayman_characters] # extract movie characters
-    return " ".join(movie_characters).strip()
-
-
 def get_movie_characters(tweets_df):
     characters_list = tweets_df['movie_characters'].tolist()
 
     characters = []
     for item in characters_list:
-        item = item.split()
-        for i in item:
-            characters.append(i)
+        if type(item) == str:
+            item = item.split()
+            for i in item:
+                characters.append(i)
 
     counts = Counter(characters)
     characters_df = pd.DataFrame.from_dict(counts, orient='index').reset_index()
@@ -158,39 +117,6 @@ def get_movie_characters(tweets_df):
     characters_df['percentage'] = 100*(characters_df['count'] / characters_df['count'].sum())
         
     return characters_df
-
-
-def refine_tweet_text(tweet):
-    tweet = tweet.lower()
-    # remove emojis 
-    tweet = demoji.replace(tweet, "")
-    # Remove urls
-    tweet = re.sub(r"http\S+|www\S+|https\S+", '', tweet, flags = re.MULTILINE)
-    # Remove user @ references and '#' from tweet
-    tweet = re.sub(r'\@\w+|\#\w+|\d+', '', tweet)
-    tweet_tokens = word_tokenize(tweet)  # convert string to tokens
-    # Remove stopwords
-    filtered_words = [w for w in tweet_tokens if w not in stop_words]
-    
-    # Remove punctuations
-    unpunctuated_words = [w for w in filtered_words if w not in string.punctuation]
-    lemmatizer = WordNetLemmatizer() # instatiate an object WordNetLemmatizer Class
-    lemma_words = [lemmatizer.lemmatize(w) for w in unpunctuated_words]
-    return " ".join(lemma_words)
-
-
-# Create function to obtain Polarity Score
-def get_polarity(tweet):
-    return TextBlob(tweet).sentiment.polarity
-
-# Create function to obtain Sentiment category
-def get_sentiment_textblob(polarity):
-    if polarity < 0:
-        return "Negative"
-    elif polarity == 0:
-        return "Neutral"
-    else:
-        return "Positive"
 
 
 def get_sentiments(tweets_df):
@@ -223,27 +149,22 @@ def get_daily_report(tweet_df):
    
 def preprocess_tweets():
     try:
-        cols = ["tweet_id", "created_at", "text", "location", "retweet", "favorite"]
-        tweets_df = pd.read_csv(current_file_name, header=None, index_col=None, names=cols)
+        tweets_df = pd.read_csv(current_file_name, header="infer", index_col=None)
+        print(tweets_df.head())
 
         # Rename columns
-        tweets_df.columns = ['tweet_id','time_created','tweet', 'location', 'retweet_count','favorite_count']
+        tweets_df.columns = ['tweet_id','time_created','tweet', 'location', 
+            'retweet_count', 'favorite_count', 'hashtags', 'movie_characters', 
+            'tweet_refined', 'polarity', 'sentiment']
 
-        tweets_df['time_created'] = pd.to_datetime(tweets_df['time_created'])
-
-        # extract hashtags
-        tweets_df['hashtags'] = tweets_df['tweet'].apply(extract_hashtags)
-
-        # extract movie characters
-        tweets_df['movie_characters'] = tweets_df['tweet'].apply(extract_movie_characters)
-
-        # refine tweet text
-        tweets_df['tweet_refined'] = tweets_df['tweet'].apply(refine_tweet_text)
+        tweets_df['time_created'] = pd.to_datetime(tweets_df['time_created'], errors="coerce")
+        
+        print(tweets_df.info())
+        print(tweets_df.columns)
+        
+        # print(tweets_df.head())
+        
         tweets_long_string = tweets_df['tweet_refined'].tolist()
-        tweets_long_string = " ".join(tweets_long_string)
-
-        tweets_df['polarity']=tweets_df['tweet_refined'].apply(get_polarity)
-        tweets_df['sentiment']=tweets_df['polarity'].apply(get_sentiment_textblob)
     except FileNotFoundError as err:
         tweets_df = pd.DataFrame()
 

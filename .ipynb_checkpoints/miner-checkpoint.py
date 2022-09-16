@@ -7,6 +7,23 @@ import os
 import time
 import sys
 import datetime as dt
+import string
+
+from textblob import TextBlob
+import demoji
+
+import nltk
+
+from nltk.stem import SnowballStemmer
+from nltk.corpus import stopwords 
+from nltk.tokenize import word_tokenize
+from nltk.stem.porter import * 
+from nltk.stem import WordNetLemmatizer 
+from nltk import pos_tag 
+from nltk.sentiment.vader import SentimentIntensityAnalyzer
+from nltk.corpus import words 
+
+from sklearn.feature_extraction.text import CountVectorizer
 
 from scheduler import Scheduler
 import scheduler.trigger as trigger
@@ -24,9 +41,77 @@ latest_file_name = "tweets_grayman_latest.csv"
 
 miner_log_file_name = "miner_log.txt"
 
+# relevant data for NLTK 
+grayman_characters = ["six", "lloyd", "hansen", "dani", "miranda", "fitzroy", "suzanne", "brewer", "avik", "san", "margaret", "cahill", "carmichael", "laszlo", "sosa", "claire", "father", "dulin", "perini", "markham", "dining", "car", "buyer", "young", "dawson", "officer", "zelezny"]
+stop_words = list(stopwords.words('english'))
+
+# The list below are common words which will not be relevant in our analysis.
+common_words = ['netflix']
+alphabets = list(string.ascii_lowercase)
+stop_words = stop_words + alphabets + common_words + grayman_characters
+
 auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
 auth.set_access_token(access_token, access_token_secret) 
 api = tweepy.API(auth,wait_on_rate_limit=True) 
+
+
+def extract_hashtags(tweet):
+    if pd.isna(tweet):
+        return ""
+    else:
+        tweet = str(tweet).lower()  #has to be in place
+        tweet = re.findall(r'\#\w+',tweet) # Remove hastags with REGEX
+        return " ".join(tweet)
+
+
+# Function to extract movie Characters from each Tweet
+def extract_movie_characters(tweet):
+    if pd.isna(tweet):
+        return ""
+    else:
+        tweet = tweet.lower() # Reduce tweet to lower case
+        tweet_tokens = word_tokenize(tweet) # split each word in the tweet for parsing
+        movie_characters = [char for char in tweet_tokens if char in grayman_characters] # extract movie characters
+        return " ".join(movie_characters).strip()
+
+
+
+def refine_tweet_text(tweet):
+    if pd.isna(tweet):
+        return ""
+    else:
+        tweet = tweet.lower()
+        # remove emojis 
+        tweet = demoji.replace(tweet, "")
+        # Remove urls
+        tweet = re.sub(r"http\S+|www\S+|https\S+", '', tweet, flags = re.MULTILINE)
+        # Remove user @ references and '#' from tweet
+        tweet = re.sub(r'\@\w+|\#\w+|\d+', '', tweet)
+        tweet_tokens = word_tokenize(tweet)  # convert string to tokens
+        # Remove stopwords
+        filtered_words = [w for w in tweet_tokens if w not in stop_words]
+
+        # Remove punctuations
+        unpunctuated_words = [w for w in filtered_words if w not in string.punctuation]
+        lemmatizer = WordNetLemmatizer() # instatiate an object WordNetLemmatizer Class
+        lemma_words = [lemmatizer.lemmatize(w) for w in unpunctuated_words]
+        return " ".join(lemma_words)
+
+
+
+# Create function to obtain Polarity Score
+def get_polarity(tweet):
+    return TextBlob(tweet).sentiment.polarity
+
+# Create function to obtain Sentiment category
+def get_sentiment_textblob(polarity):
+    if polarity < 0:
+        return "Negative"
+    elif polarity == 0:
+        return "Neutral"
+    else:
+        return "Positive"
+
 
 def log(log_text, where="miner"):
     if where == "miner":
@@ -63,20 +148,36 @@ def get_tweets(search_query, num_tweets, period="current", since_id_num=None):
         ]
         file_name = latest_file_name
         
-    file_name = file_name
-    with open(file_name,'a', newline='', encoding='utf-8') as csvFile:
-        csv_writer = csv.writer(csvFile, delimiter=',') 
-        for tweet in tweet_list:
-            tweet_id = tweet.id
-            created_at = tweet.created_at
-            text = tweet.full_text
-            location = tweet.user.location 
-            retweet = tweet.retweet_count
-            favorite = tweet.favorite_count 
-            
-            csv_writer.writerow([tweet_id, created_at, text, location, retweet, favorite])
-        log_text = "{}: {}\t {}\t{} tweet(s)\n".format(time.asctime(), period, file_name, len(tweet_list))
-        log(log_text, "miner")
+    file_name = file_name    
+    tweets = []
+    for tweet in tweet_list:
+        tweet_id = tweet.id
+        created_at = tweet.created_at
+        text = tweet.full_text
+        location = tweet.user.location 
+        retweet = tweet.retweet_count
+        favorite = tweet.favorite_count 
+
+        tweets.append([tweet_id, created_at, text, location, retweet, favorite])
+        
+    cols = ["tweet_id", "created_at", "tweet", "location", "retweet", "favorite"]
+    tweets_df = pd.DataFrame(tweets, columns=cols)
+    
+    # extract hashtags
+    tweets_df['hashtags'] = tweets_df['tweet'].apply(extract_hashtags)
+    # extract movie characters
+    tweets_df['movie_characters'] = tweets_df['tweet'].apply(extract_movie_characters)
+    # refine tweet text
+    tweets_df['tweet_refined'] = tweets_df['tweet'].apply(refine_tweet_text)
+    # get sentiments
+    tweets_df['polarity']=tweets_df['tweet_refined'].apply(get_polarity)
+    tweets_df['sentiment']=tweets_df['polarity'].apply(get_sentiment_textblob)
+    
+    tweets_df.to_csv(file_name, header=True, index=False)
+        
+    
+    log_text = "{}: {}\t {}\t{} tweet(s)\n".format(time.asctime(), period, file_name, len(tweet_list))
+    log(log_text, "miner")
         
 
 def mine():
@@ -100,24 +201,25 @@ def mine():
         print("Found previously mined tweets")
 
     with open('tweets_grayman.csv', encoding='utf-8') as data_file:
-        first_tweet = next(csv.reader(data_file))
-        latest_tweet_id = int(first_tweet[0])
+        next(csv.reader(data_file))  # skip the header line
+        latest_tweet = next(csv.reader(data_file))
+        latest_tweet_id = int(latest_tweet[0].strip())
 
     print("Fetching latest tweets")
     get_tweets(search_query, 5000, "latest", latest_tweet_id)
 
 
     tweets = []
-    cols = ["tweet_id", "created_at", "text", "location", "retweet", "favorite"]
     for file_name in [ current_file_name, latest_file_name ]:
-        df = pd.read_csv(file_name, index_col=None, header=None, names=cols) 
+        df = pd.read_csv(file_name, index_col=None, header="infer")
         print(df.shape)
         tweets.append(df)
 
     tweets_df = pd.concat(tweets)
     tweets_df = tweets_df.sort_values(by=["tweet_id"], ascending=False).drop_duplicates()
-
-    tweets_df.to_csv("tweets_grayman.csv", header=False, index=False)
+    
+    tweets_df.to_csv("tweets_grayman.csv", header=True, index=False)
+    os.remove(latest_file_name)
 
     
 if __name__ == "__main__":
@@ -129,5 +231,3 @@ if __name__ == "__main__":
     while True:
         schedule.exec_jobs()
         time.sleep(1)
-        
-        
