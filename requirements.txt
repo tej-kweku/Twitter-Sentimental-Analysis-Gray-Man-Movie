@@ -1,4 +1,4 @@
-streamlit==1.11.0
+streamlit==1.12.0
 nltk==3.6.7
 langdetect
 textblob==0.15.3
@@ -8,4 +8,4 @@ tweepy==4.10.0
 scheduler==0.7.4
 streamlit_autorefresh
 sklearn
-emot==3.0.0
+demoji

@@ -22,10 +22,7 @@ access_token_secret = "EFsBgaJlZ1cQqzpXnSyqrFuxeyjeApMbA7ds4KfYy8K4x"
 current_file_name = "tweets_grayman.csv"
 latest_file_name = "tweets_grayman_latest.csv"
 
-# base_path = "."
 miner_log_file_name = "miner_log.txt"
-
-# os.chdir(base_path)
 
 auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
 auth.set_access_token(access_token, access_token_secret) 
@@ -127,7 +124,7 @@ if __name__ == "__main__":
     mine()
     
     schedule = Scheduler()
-    schedule.cyclic(dt.timedelta(minutes=30), mine) 
+    schedule.cyclic(dt.timedelta(minutes=180), mine) 
         
     while True:
         schedule.exec_jobs()

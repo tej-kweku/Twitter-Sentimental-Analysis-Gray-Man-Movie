@@ -19,10 +19,6 @@ pd.set_option('display.max_columns', 50)
 warnings.filterwarnings('ignore')
 
 
-# base_path = "."
-
-# os.chdir(base_path)
-
 print("MAIN: ", os.getcwd().upper())
 
 st.experimental_singleton.clear()
@@ -224,5 +220,5 @@ log_text = "{}: Reload Completed {} tweet(s)\n".format(time.asctime(), twitter_d
 print(log_text)
 log(log_text, "analysis")
 
-reload_interval = 1800000  # every 30 minuntes
-count = st_autorefresh(interval=reload_interval, key="tsagrayman")
+# reload_interval = 1800000  # every 30 minuntes
+# count = st_autorefresh(interval=reload_interval, key="tsagrayman")

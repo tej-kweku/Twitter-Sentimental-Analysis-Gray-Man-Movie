@@ -18,7 +18,7 @@ import pandas as pd
 import numpy as np
 
 from textblob import TextBlob
-# from emot.emo_unicode import UNICODE_EMOJI, EMOTICONS_EMO
+import demoji
 
 import nltk
 
@@ -71,15 +71,12 @@ tweets_long_string = None
 
 grayman_characters = ["six", "lloyd", "hansen", "dani", "miranda", "fitzroy", "suzanne", "brewer", "avik", "san", "margaret", "cahill", "carmichael", "laszlo", "sosa", "claire", "father", "dulin", "perini", "markham", "dining", "car", "buyer", "young", "dawson", "officer", "zelezny"]
 stop_words = list(stopwords.words('english'))
-# emojis = list(UNICODE_EMOJI.keys()) 
 
 
 # The list below are common words which will not be relevant in our analysis.
 common_words = ['netflix']
 alphabets = list(string.ascii_lowercase)
 stop_words = stop_words + alphabets + common_words + grayman_characters
-
-# os.chdir(base_path)
 
 
 def log(log_text, where="miner"):
@@ -90,47 +87,7 @@ def log(log_text, where="miner"):
         
     with open(log_file_name,'a', newline='', encoding='utf-8') as log_file:
         log_file.write(log_text)
-                
-
-def get_tweets(search_query, num_tweets, period="current", max_id_num=None, since_id_num=None):
-    file_name = None
-    if period == "current":
-        tweet_list = [
-            tweets for tweets in tweepy.Cursor(
-                api.search_tweets,
-                q=search_query,
-                lang="en", 
-                tweet_mode='extended'
-            ).items(num_tweets)
-        ]
-        file_name = current_file_name
-    elif period == "latest":
-        tweet_list = [
-            tweets for tweets in tweepy.Cursor(
-                api.search_tweets,
-                q=search_query,
-                lang="en",
-                since_id=since_id_num, # since_id is the most recent tweet id you have
-                tweet_mode='extended'
-            ).items(num_tweets)
-        ]
-        file_name = latest_file_name
-    file_name = file_name
-    with open(file_name,'a', newline='', encoding='utf-8') as csvFile:
-        csv_writer = csv.writer(csvFile, delimiter=',') # create an instance of csv object
-        # Begin scraping the tweets individually:
-        for tweet in tweet_list:
-            tweet_id = tweet.id # get Tweet ID result
-            created_at = tweet.created_at # get time tweet was created
-            text = tweet.full_text # retrieve full tweet text
-            retweet = tweet.retweet_count # retrieve number of retweets
-            favorite = tweet.favorite_count # retrieve number of likes
-            
-            csv_writer.writerow([tweet_id, created_at, text, location, retweet, favorite])
-        log_text = "{}: {}\t {}\t{} tweet(s)\n".format(time.asctime(), period, file_name, len(tweet_list))
-        log(log_text, "miner")
-        print("Mining completed")
-             
+                             
 
 def space(num_lines=1):
     """Adds empty lines to the Streamlit app."""
@@ -204,15 +161,16 @@ def get_movie_characters(tweets_df):
 
 
 def refine_tweet_text(tweet):
-    tweet = tweet.lower()  # changes all words to lower case
+    tweet = tweet.lower()
+    # remove emojis 
+    tweet = demoji.replace(tweet, "")
     # Remove urls
     tweet = re.sub(r"http\S+|www\S+|https\S+", '', tweet, flags = re.MULTILINE)
     # Remove user @ references and '#' from tweet
     tweet = re.sub(r'\@\w+|\#\w+|\d+', '', tweet)
-    # Remove stopwords
     tweet_tokens = word_tokenize(tweet)  # convert string to tokens
+    # Remove stopwords
     filtered_words = [w for w in tweet_tokens if w not in stop_words]
-    # filtered_words = [w for w in filtered_words if w not in emojis]
     
     # Remove punctuations
     unpunctuated_words = [w for w in filtered_words if w not in string.punctuation]
@@ -263,7 +221,6 @@ def get_daily_report(tweet_df):
     }
     
    
-# @st.cache(allow_output_mutation=True)
 def preprocess_tweets():
     try:
         cols = ["tweet_id", "created_at", "text", "location", "retweet", "favorite"]
