@@ -7,5 +7,5 @@ enableCORS=true\n\r\
 port = $PORT\n\r\
 \n\r
 [client]\n\r
-caching = true\n\r
+caching = false\n\r
 " > ~/.streamlit/config.toml
