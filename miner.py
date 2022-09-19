@@ -226,7 +226,7 @@ if __name__ == "__main__":
     mine()
     
     schedule = Scheduler()
-    schedule.cyclic(dt.timedelta(minutes=180), mine) 
+    schedule.cyclic(dt.timedelta(minutes=360), mine) 
         
     while True:
         schedule.exec_jobs()

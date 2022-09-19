@@ -1,11 +1,8 @@
 import time
-import os
-import sys
 import datetime
 
 import streamlit as st
 import pandas as pd
-import numpy as np
 import plotly.figure_factory as ff
 import plotly.express as px
 import warnings
@@ -17,9 +14,6 @@ from functions import *
 pd.set_option('display.max_rows', 50)
 pd.set_option('display.max_columns', 50)
 warnings.filterwarnings('ignore')
-
-
-print("MAIN: ", os.getcwd().upper())
 
 st.experimental_singleton.clear()
 st.experimental_memo.clear()
@@ -40,16 +34,14 @@ twitter_data = []
 
 
 def reload_data():
-    twitter_data = preprocess_tweets()
+    twitter_data = read_dataset()
         
 # fetch the movie data
 with st.spinner("Loading"):
     twitter_data.clear()
-    # raw_data = fetch_movie_data_from_internet()
-    raw_data = movie_data
-    omdb_data = json.loads(raw_data)
+    omdb_data = movie_data
 
-    twitter_data = preprocess_tweets()        
+    twitter_data = read_dataset()        
     twitter_meta_data = dict()    
 
     with st.sidebar:
@@ -182,7 +174,8 @@ with c2_right_col:
 space(2)
 
 c3 = st.container()    
-c3_left_col, c3_right_col = c3.columns([6, 3])
+# c3_left_col, c3_right_col = c3.columns([6, 3])
+c3_left_col = c3
 with c3_left_col:
     c3_left_col.subheader("Trend")  
     c3_left_col_tab_1, c3_left_col_tab_2 = c3_left_col.tabs(["General", "Sentiment"])
@@ -211,14 +204,14 @@ with c3_left_col:
         c3_left_col_tab_2.plotly_chart(fig, use_container_width=True)
 
 
-with c3_right_col:
-    c3_right_col.subheader("Tweets")
-    c3_right_col.dataframe(twitter_data.sample(100)["tweet"])
+# with c3_right_col:
+#     c3_right_col.subheader("Tweets")
+#     c3_right_col.dataframe(twitter_data.sample(100)["tweet"].reset_index(drop=True))
 
 
 log_text = "{}: Reload Completed {} tweet(s)\n".format(time.asctime(), twitter_data.shape[0])
 print(log_text)
 log(log_text, "analysis")
 
-reload_interval = 1800000  # every 30 minuntes
+reload_interval = 15 * 60 * 1000  # every 15 minuntes
 count = st_autorefresh(interval=reload_interval, key="tsagrayman")
