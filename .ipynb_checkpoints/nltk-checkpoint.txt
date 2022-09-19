@@ -1,9 +1,0 @@
-stopwords
-vader_lexicon
-words
-punkt
-wordnet
-omw-1.4
-subjectivity
-unicode_samples
-twitter_samples
