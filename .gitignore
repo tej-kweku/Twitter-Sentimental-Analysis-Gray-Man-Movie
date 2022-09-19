@@ -1,0 +1,5 @@
+.ipynb_checkpoints/
+__pycache__/
+analysis_log.txt
+miner_log.txt
+*.old
