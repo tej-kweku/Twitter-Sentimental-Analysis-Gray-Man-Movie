@@ -31,10 +31,7 @@ import scheduler.trigger as trigger
 print("MINER: ", os.getcwd().upper())
 
 
-consumer_key = "gEro0S6tWFM0H1ujdND2lLemF"
-consumer_secret = "Ij2eXRiA6lzzSaHnb6EAcVJvKs3jXd2Tj1WUhVmvxP3KGasd5G"
-access_token = "1536381857033601025-PaZbQo2eRMwgWn1fyyyvxHLopX0nrT"
-access_token_secret = "EFsBgaJlZ1cQqzpXnSyqrFuxeyjeApMbA7ds4KfYy8K4x"
+
 
 current_file_name = "tweets_grayman.csv"
 latest_file_name = "tweets_grayman_latest.csv"
