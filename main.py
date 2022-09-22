@@ -44,7 +44,7 @@ with st.spinner("Loading"):
     twitter_data = read_dataset()        
     twitter_meta_data = dict()    
     
-    st.dataframe(twitter_data)
+    # st.dataframe(twitter_data)
 
     
     with st.sidebar:
