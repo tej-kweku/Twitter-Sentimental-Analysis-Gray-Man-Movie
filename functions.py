@@ -74,6 +74,7 @@ def get_movie_characters(tweets_df):
                 characters.append(i)
 
     counts = Counter(characters)
+    del counts["NA"]
     characters_df = pd.DataFrame.from_dict(counts, orient='index').reset_index()
     characters_df.columns = ['movie_characters', 'count']
     characters_df.sort_values(by='count', ascending=False, inplace=True)
@@ -122,6 +123,8 @@ def read_dataset():
         tweets_df['time_created'] = pd.to_datetime(tweets_df['time_created'], errors="coerce")
         
         tweets_long_string = tweets_df['tweet_refined'].tolist()
+        tweets_df["hashtags"] = tweets_df["hashtags"].fillna("NA")
+        tweets_df["movie_characters"] = tweets_df["movie_characters"].fillna("NA")
     except FileNotFoundError as err:
         tweets_df = pd.DataFrame()
 
