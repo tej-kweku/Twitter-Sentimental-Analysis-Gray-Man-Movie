@@ -28,13 +28,11 @@ from sklearn.feature_extraction.text import CountVectorizer
 from scheduler import Scheduler
 import scheduler.trigger as trigger
 
-print("MINER: ", os.getcwd().upper())
 
-
-consumer_key = "gEro0S6tWFM0H1ujdND2lLemF"
-consumer_secret = "Ij2eXRiA6lzzSaHnb6EAcVJvKs3jXd2Tj1WUhVmvxP3KGasd5G"
-access_token = "1536381857033601025-PaZbQo2eRMwgWn1fyyyvxHLopX0nrT"
-access_token_secret = "EFsBgaJlZ1cQqzpXnSyqrFuxeyjeApMbA7ds4KfYy8K4x"
+consumer_key = 'XXXXXXXXXXXXXXXXXXXXX'
+consumer_secret = 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
+access_key= '##########-XXXXXXXXXXXXXXXXXXXXX'
+access_secret = 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
 
 current_file_name = "tweets_grayman.csv"
 latest_file_name = "tweets_grayman_latest.csv"
@@ -190,7 +188,7 @@ def mine():
         log_text = "{}: {}".format(time.asctime(), "restarting\n")
         log(log_text, "miner")
 
-    search_words = "thegrayman OR grayman OR thegreyman OR greyman OR ryangosling OR chrisevans OR sierra6 OR #thegrayman OR #grayman OR #thegreyman OR #greyman OR #ryangosling OR #chrisevans OR #sierra6"
+    search_words = "thegrayman OR grayman OR thegreyman OR greyman OR sierra6 OR #thegrayman OR #grayman OR #thegreyman OR #greyman OR #sierra6"
     search_query = search_words + " -filter:retweets AND -filter:replies"
 
     # get the current tweets
